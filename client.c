@@ -1,16 +1,23 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
+
+struct sockaddr_in * createAddr(char *ip, int port);
 
 int main() {
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    char *ip = "0.0.0.0";
-    struct sockaddr_in addr;
-    addr.sin_family = AF_INET;
-    addr.sin_port = htons(9999);
-    inet_pton(AF_INET, ip, &addr.sin_addr.s_addr);
+    struct sockaddr_in * addr = createAddr("0.0.0.0", 9999);
 
-    connect(socketfd, &addr, sizeof(addr));
+    connect(socketfd, addr, sizeof(*addr));
 
     return 0;
+}
+
+struct sockaddr_in * createAddr(char *ip, int port){
+    struct sockaddr_in *addr = malloc(sizeof(struct sockaddr_in));
+    addr->sin_family = AF_INET;
+    addr->sin_port = htons(port);
+    inet_pton(AF_INET, ip, addr->sin_addr.s_addr);
+    return addr;
 }
