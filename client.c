@@ -23,6 +23,6 @@ struct sockaddr_in * createAddr(char *ip, int port){
     struct sockaddr_in *addr = malloc(sizeof(struct sockaddr_in));
     addr->sin_family = AF_INET;
     addr->sin_port = htons(port);
-    inet_pton(AF_INET, ip, addr->sin_addr.s_addr);
+    inet_pton(AF_INET, ip, &(addr->sin_addr.s_addr));
     return addr;
 }
