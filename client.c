@@ -15,6 +15,13 @@ int main() {
     if (result < 0) {
         printf("Error: connect()");
     } printf("Connected!");
+
+    char *msg;
+    msg = "Test message";
+    send(socketfd, msg, strlen(msg), 0);
+
+    char buffer[1024];
+    recv(socketfd, buffer, 1024, 0);
     
     return 0;
 }
