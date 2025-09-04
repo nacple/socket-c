@@ -9,7 +9,7 @@ struct sockaddr_in * createAddr(char *ip, int port);
 int main() {
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
-    struct sockaddr_in * addr = createAddr("127.0.0.1", 9999);
+    struct sockaddr_in * addr = createAddr("127.0.0.1", 9888);
 
     int result = connect(socketfd, addr, sizeof(*addr));
     if (result < 0) {
