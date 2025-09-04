@@ -12,8 +12,10 @@ int main() {
     struct sockaddr_in * addr = createAddr("127.0.0.1", 9999);
 
     int result = connect(socketfd, addr, sizeof(*addr));
-    if (result == 0) printf("Connected!");
-
+    if (result < 0) {
+        printf("Error: connect()");
+    } printf("Connected!");
+    
     return 0;
 }
 
