@@ -1,6 +1,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 struct sockaddr_in * createAddr(char *ip, int port);
 
@@ -9,7 +10,8 @@ int main() {
 
     struct sockaddr_in * addr = createAddr("0.0.0.0", 9999);
 
-    connect(socketfd, addr, sizeof(*addr));
+    int result = connect(socketfd, addr, sizeof(*addr));
+    if (result == 0) printf("Connected!");
 
     return 0;
 }
