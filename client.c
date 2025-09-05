@@ -17,13 +17,19 @@ int main() {
         return 1;
     } printf("Connected!\n");
 
-    char *msg;
-    msg = "Test message";
-    send(socketfd, msg, strlen(msg), 0);
-
-    char buffer[1024];
-    recv(socketfd, buffer, 1024, 0);
+    char *line = NULL;
+    size_t lineSize = 0;
+    printf("Message: ");
     
+    while (1)
+    {
+        ssize_t charCount = getline(&line, &lineSize, stdin);
+        if (charCount > 0) {
+            if (strcmp(line, "exit\n") == 0) break;
+            ssize_t result_send = send(socketfd, line, charCount, 0);
+        }
+    }
+
     return 0;
 }
 
