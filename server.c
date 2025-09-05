@@ -5,6 +5,8 @@
 #include <unistd.h>
 #include <pthread.h>
 
+#define maxClients 10
+
 struct sockaddr_in * createAddr(char *ip, int port);
 void startReceiver(int client_socketfd);
 void handler(int server_socketfd);
@@ -15,6 +17,9 @@ struct AcceptedConnection {
     int error;
     char status;
 };
+
+struct AcceptedConnection connectedClients[maxClients];
+int connectedClientCount = 0;
 
 struct AcceptedConnection * acceptConnection(int server_socketfd);
 void startReceiver_pt(struct AcceptedConnection * acceptedConn);
@@ -87,6 +92,11 @@ void startReceiver(int socketfd) {
 void handler(int server_socketfd) {
     while(1) {
         struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
+        if(client_socket->status){
+            if (connectedClientCount < maxClients) {
+                connectedClients[connectedClientCount++] = *client_socket;
+            }
+        }
         startReceiver_pt(client_socket);
     }
 }
