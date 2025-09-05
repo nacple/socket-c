@@ -6,6 +6,7 @@
 
 struct sockaddr_in * createAddr(char *ip, int port);
 void startListening(int socketfd);
+void startListener(int client_socketfd);
 
 struct AcceptedConnection {
     int acceptedSocketfd;
@@ -32,6 +33,7 @@ int main() {
         printf("Error: listen()\n");
         return 1;
     } printf("Listening...\n");
+    startListener(client_socket->acceptedSocketfd);
 
     struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
 
