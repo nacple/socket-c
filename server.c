@@ -6,7 +6,7 @@
 #include <pthread.h>
 
 struct sockaddr_in * createAddr(char *ip, int port);
-void startListener(int client_socketfd);
+void startReceiver(int client_socketfd);
 void startAcceptingConns(int server_socketfd);
 void handler(int server_socketfd);
 
@@ -67,7 +67,7 @@ struct AcceptedConnection * acceptConnection(int server_socketfd) {
     return acceptedConn;
 }
 
-void startListener(int socketfd) {
+void startReceiver(int socketfd) {
     char buffer[1024];
     while(1) {
         ssize_t result_recv = recv(socketfd, buffer, 1024, 0);
@@ -90,6 +90,6 @@ void startAcceptingConns(int server_socketfd) {
 
 void handler(int server_socketfd) {
     struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
-    startListener(client_socket->acceptedSocketfd);
+    startReceiver(client_socket->acceptedSocketfd);
     close(client_socket->acceptedSocketfd);
 }
