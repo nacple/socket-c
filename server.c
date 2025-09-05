@@ -10,6 +10,8 @@
 struct sockaddr_in * createAddr(char *ip, int port);
 void startReceiver(int client_socketfd);
 void handler(int server_socketfd);
+void serverBroadcast(char *msg, int size);
+void clientBroadcast(char *msg, int size, int client_socketfd);
 
 struct AcceptedConnection {
     int acceptedSocketfd;
@@ -104,4 +106,17 @@ void handler(int server_socketfd) {
 void startReceiver_pt(struct AcceptedConnection * acceptedConn) {
     pthread_t id;
     pthread_create(&id, NULL, (void *)startReceiver, (void *)acceptedConn->acceptedSocketfd);
+}
+
+void serverBroadcast(char *msg, int size) {
+    for(int i = 0; i < connectedClientCount; i++) {
+        send(connectedClients[i].acceptedSocketfd, msg, size, 0);
+    }
+}
+
+void clientBroadcast(char *msg, int size, int client_socketfd) {
+    for(int i = 0; i < connectedClientCount; i++) {
+        if(connectedClients[i].acceptedSocketfd == client_socketfd) continue;
+        send(connectedClients[i].acceptedSocketfd, msg, size, 0);
+    }
 }
