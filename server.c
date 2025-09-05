@@ -32,8 +32,14 @@ int main() {
     }
 
     char buffer[1024];
-    recv(client_socketfd, buffer, 1024, 0);
-    printf("%s\n", buffer);
+    while(1) {
+        ssize_t result_recv = recv(client_socketfd, buffer, 1024, 0);
+        if (client_socketfd < 0) {
+            printf("Error: recv()\n");
+            break;
+        }
+        if (result_recv > 0) printf("%s\n", buffer);
+    }
 
     return 0;
 }
