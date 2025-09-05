@@ -51,7 +51,7 @@ struct sockaddr_in * createAddr(char *ip, int port){
 
 void startReceiver(int socketfd) {
     pthread_t id;
-    pthread_create(&id, NULL, (void *)startReceiver, (void *)socketfd);
+    pthread_create(&id, NULL, (void *)startReceiver_pt, (void *)socketfd);
 }
 
 void startReceiver_pt(int socketfd) {
