@@ -43,6 +43,7 @@ int main() {
             buffer[result_recv] = 0;
             printf("%s\n", buffer);
         }
+        if (result_recv == 0) break;
     }
 
     close(client_socketfd);
