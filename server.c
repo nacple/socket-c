@@ -61,7 +61,7 @@ struct AcceptedConnection * acceptConnection(int server_socketfd) {
 
     acceptedConn->addr = clientAddr;
     acceptedConn->acceptedSocketfd = client_socketfd;
-    acceptedConn->status = (client_socketfd > 0) ? 1 : 0; 
+    acceptedConn->status = (client_socketfd >= 0) ? 1 : 0; 
     if(acceptedConn->status == 0) acceptedConn->error = client_socketfd;
 
     return acceptedConn;
