@@ -93,5 +93,5 @@ void handler(int server_socketfd) {
 
 void startReceiver_pt(struct AcceptedConnection * acceptedConn) {
     pthread_t id;
-    pthread_create(&id, NULL, startReceiver, acceptedConn->acceptedSocketfd);
+    pthread_create(&id, NULL, (void *)startReceiver, (void *)acceptedConn->acceptedSocketfd);
 }
