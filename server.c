@@ -3,9 +3,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <pthread.h>
 
 struct sockaddr_in * createAddr(char *ip, int port);
 void startListener(int client_socketfd);
+void startAcceptingConns(int server_socketfd);
+void handler(int server_socketfd);
 
 struct AcceptedConnection {
     int acceptedSocketfd;
@@ -32,13 +35,9 @@ int main() {
         printf("Error: listen()\n");
         return 1;
     } printf("Listening...\n");
-    startListener(client_socket->acceptedSocketfd);
+    
+    startAcceptingConns(server_socketfd);
 
-    struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
-
-    startListening(client_socket->acceptedSocketfd);
-
-    close(client_socket->acceptedSocketfd);
     shutdown(server_socketfd, SHUT_RDWR);
 
     return 0;
@@ -82,4 +81,15 @@ void startListener(int socketfd) {
         }
         if (result_recv == 0) break;
     }
+}
+
+void startAcceptingConns(int server_socketfd) {
+    pthread_t id;
+    pthread_create(&id, NULL, handler, server_socketfd); 
+}
+
+void handler(int server_socketfd) {
+    struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
+    startListener(client_socket->acceptedSocketfd);
+    close(client_socket->acceptedSocketfd);
 }
