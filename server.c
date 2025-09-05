@@ -6,6 +6,15 @@
 
 struct sockaddr_in * createAddr(char *ip, int port);
 
+struct AcceptedConnection {
+    int acceptedSocketfd;
+    struct sockaddr_in addr;
+    int error;
+    char status;
+};
+
+struct AcceptedConnection * acceptConnection(int server_socketfd);
+
 int main() {
     int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -23,14 +32,7 @@ int main() {
         return 1;
     } printf("Listening...\n");
 
-    struct sockaddr_in clientAddr;
-    int clientAddrSize = sizeof(struct sockaddr_in);
-
-    int client_socketfd = accept(server_socketfd, &clientAddr, &clientAddrSize);
-    if (client_socketfd < 0) {
-        printf("Error: accept()\n");
-        return 1;
-    }
+    struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
 
     char buffer[1024];
     while(1) {
@@ -46,7 +48,7 @@ int main() {
         if (result_recv == 0) break;
     }
 
-    close(client_socketfd);
+    close(client_socket->acceptedSocketfd);
     shutdown(server_socketfd, SHUT_RDWR);
 
     return 0;
@@ -58,4 +60,20 @@ struct sockaddr_in * createAddr(char *ip, int port){
     addr->sin_port = htons(port);
     inet_pton(AF_INET, ip, &(addr->sin_addr.s_addr));
     return addr;
+}
+
+struct AcceptedConnection * acceptConnection(int server_socketfd) {
+    struct AcceptedConnection * acceptedConn = malloc(sizeof(struct AcceptedConnection));
+    struct sockaddr_in clientAddr;
+    int clientAddrSize = sizeof(struct sockaddr_in);
+
+    int client_socketfd = accept(server_socketfd, &clientAddr, &clientAddrSize);
+    if (client_socketfd < 0) printf("Error: acceptConnection()\n");
+
+    acceptedConn->addr = clientAddr;
+    acceptedConn->acceptedSocketfd = client_socketfd;
+    acceptedConn->status = (client_socketfd > 0) ? 1 : 0; 
+    if(acceptedConn->status == 0) acceptedConn->error = client_socketfd;
+
+    return acceptedConn;
 }
