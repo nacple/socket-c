@@ -13,8 +13,9 @@ int main() {
 
     int result = connect(socketfd, addr, sizeof(*addr));
     if (result < 0) {
-        printf("Error: connect()");
-    } printf("Connected!");
+        printf("Error: connect()\n");
+        return 1;
+    } printf("Connected!\n");
 
     char *msg;
     msg = "Test message";
