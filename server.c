@@ -39,7 +39,10 @@ int main() {
             printf("Error: recv()\n");
             break;
         }
-        if (result_recv > 0) printf("%s\n", buffer);
+        if (result_recv > 0) {
+            buffer[result_recv] = 0;
+            printf("%s\n", buffer);
+        }
     }
 
     close(client_socketfd);
