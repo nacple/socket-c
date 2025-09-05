@@ -21,18 +21,26 @@ int main() {
         return 1;
     } printf("Connected!\n");
 
+    char *name[20];
+    printf("Enter your name: ");
+    scanf("%s", name);
+
     char *line = NULL;
     size_t lineSize = 0;
     printf("Message: ");
     
     startReceiver(socketfd);
 
+    char buffer[1024];
+
     while (1)
     {
         ssize_t charCount = getline(&line, &lineSize, stdin);
-        if (charCount > 0) {
+        sprintf(buffer, "%s: %s", name, line);
+
+        if (charCount > 1) {
             if (strcmp(line, "exit\n") == 0) break;
-            ssize_t result_send = send(socketfd, line, charCount, 0);
+            ssize_t result_send = send(socketfd, buffer, strlen(buffer), 0);
         }
     }
 
