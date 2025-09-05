@@ -18,6 +18,7 @@ struct AcceptedConnection {
 };
 
 struct AcceptedConnection * acceptConnection(int server_socketfd);
+void startReceiver_pt(struct AcceptedConnection * acceptedConn);
 
 int main() {
     int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -81,6 +82,7 @@ void startReceiver(int socketfd) {
         }
         if (result_recv == 0) break;
     }
+    close(socketfd);
 }
 
 void startAcceptingConns(int server_socketfd) {
@@ -89,7 +91,13 @@ void startAcceptingConns(int server_socketfd) {
 }
 
 void handler(int server_socketfd) {
-    struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
-    startReceiver(client_socket->acceptedSocketfd);
-    close(client_socket->acceptedSocketfd);
+    while(1) {
+        struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
+        startReceiver_pt(client_socket);
+    }
+}
+
+void startReceiver_pt(struct AcceptedConnection * acceptedConn) {
+    pthread_t id;
+    pthread_create(&id, NULL, startReceiver, acceptedConn->acceptedSocketfd);
 }
