@@ -41,6 +41,9 @@ int main() {
         if (result_recv > 0) printf("%s\n", buffer);
     }
 
+    close(client_socketfd);
+    shutdown(server_socketfd, SHUT_RDWR);
+
     return 0;
 }
 
