@@ -5,7 +5,6 @@
 #include <unistd.h>
 
 struct sockaddr_in * createAddr(char *ip, int port);
-void startListening(int socketfd);
 void startListener(int client_socketfd);
 
 struct AcceptedConnection {
