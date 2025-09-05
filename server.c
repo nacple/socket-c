@@ -8,7 +8,7 @@
 #define maxClients 10
 
 struct sockaddr_in * createAddr(char *ip, int port);
-void startReceiver(int client_socketfd);
+void startReceiver_pt(int client_socketfd);
 void handler(int server_socketfd);
 void serverBroadcast(char *msg, int size);
 void clientBroadcast(char *msg, int size, int client_socketfd);
@@ -24,7 +24,7 @@ struct AcceptedConnection connectedClients[maxClients];
 int connectedClientCount = 0;
 
 struct AcceptedConnection * acceptConnection(int server_socketfd);
-void startReceiver_pt(struct AcceptedConnection * acceptedConn);
+void startReceiver(struct AcceptedConnection * acceptedConn);
 
 int main() {
     int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -74,7 +74,7 @@ struct AcceptedConnection * acceptConnection(int server_socketfd) {
     return acceptedConn;
 }
 
-void startReceiver(int socketfd) {
+void startReceiver_pt(int socketfd) {
     char buffer[1024];
     while(1) {
         ssize_t result_recv = recv(socketfd, buffer, 1024, 0);
@@ -100,13 +100,13 @@ void handler(int server_socketfd) {
                 connectedClients[connectedClientCount++] = *client_socket;
             }
         }
-        startReceiver_pt(client_socket);
+        startReceiver(client_socket);
     }
 }
 
-void startReceiver_pt(struct AcceptedConnection * acceptedConn) {
+void startReceiver(struct AcceptedConnection * acceptedConn) {
     pthread_t id;
-    pthread_create(&id, NULL, (void *)startReceiver, (void *)acceptedConn->acceptedSocketfd);
+    pthread_create(&id, NULL, (void *)startReceiver_pt, (void *)acceptedConn->acceptedSocketfd);
 }
 
 void serverBroadcast(char *msg, int size) {
