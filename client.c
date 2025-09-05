@@ -4,8 +4,11 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <pthread.h>
 
 struct sockaddr_in * createAddr(char *ip, int port);
+void startReceiver(int socketfd);
+void startReceiver_pt(int socketfd);
 
 int main() {
     int socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -22,6 +25,8 @@ int main() {
     size_t lineSize = 0;
     printf("Message: ");
     
+    startReceiver(socketfd);
+
     while (1)
     {
         ssize_t charCount = getline(&line, &lineSize, stdin);
@@ -42,4 +47,26 @@ struct sockaddr_in * createAddr(char *ip, int port){
     addr->sin_port = htons(port);
     inet_pton(AF_INET, ip, &(addr->sin_addr.s_addr));
     return addr;
+}
+
+void startReceiver(int socketfd) {
+    pthread_t id;
+    pthread_create(&id, NULL, (void *)startReceiver, (void *)socketfd);
+}
+
+void startReceiver_pt(int socketfd) {
+    char buffer[1024];
+    while(1) {
+        ssize_t result_recv = recv(socketfd, buffer, 1024, 0);
+        if (result_recv < 0) {
+            printf("Error: recv()\n");
+            break;
+        }
+        if (result_recv > 0) {
+            buffer[result_recv] = 0;
+            printf("%s\n", buffer);
+        }
+        if (result_recv == 0) break;
+    }
+    close(socketfd);
 }
