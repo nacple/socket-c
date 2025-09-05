@@ -5,6 +5,7 @@
 #include <unistd.h>
 
 struct sockaddr_in * createAddr(char *ip, int port);
+void startListening(int socketfd);
 
 struct AcceptedConnection {
     int acceptedSocketfd;
@@ -34,19 +35,7 @@ int main() {
 
     struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
 
-    char buffer[1024];
-    while(1) {
-        ssize_t result_recv = recv(client_socket->acceptedSocketfd, buffer, 1024, 0);
-        if (result_recv < 0) {
-            printf("Error: recv()\n");
-            break;
-        }
-        if (result_recv > 0) {
-            buffer[result_recv] = 0;
-            printf("%s\n", buffer);
-        }
-        if (result_recv == 0) break;
-    }
+    startListening(client_socket->acceptedSocketfd);
 
     close(client_socket->acceptedSocketfd);
     shutdown(server_socketfd, SHUT_RDWR);
@@ -76,4 +65,20 @@ struct AcceptedConnection * acceptConnection(int server_socketfd) {
     if(acceptedConn->status == 0) acceptedConn->error = client_socketfd;
 
     return acceptedConn;
+}
+
+void startListener(int socketfd) {
+    char buffer[1024];
+    while(1) {
+        ssize_t result_recv = recv(socketfd, buffer, 1024, 0);
+        if (result_recv < 0) {
+            printf("Error: recv()\n");
+            break;
+        }
+        if (result_recv > 0) {
+            buffer[result_recv] = 0;
+            printf("%s\n", buffer);
+        }
+        if (result_recv == 0) break;
+    }
 }
