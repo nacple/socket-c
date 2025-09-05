@@ -7,7 +7,6 @@
 
 struct sockaddr_in * createAddr(char *ip, int port);
 void startReceiver(int client_socketfd);
-void startAcceptingConns(int server_socketfd);
 void handler(int server_socketfd);
 
 struct AcceptedConnection {
@@ -37,7 +36,7 @@ int main() {
         return 1;
     } printf("Listening...\n");
     
-    startAcceptingConns(server_socketfd);
+    handler(server_socketfd);
 
     shutdown(server_socketfd, SHUT_RDWR);
 
@@ -83,11 +82,6 @@ void startReceiver(int socketfd) {
         if (result_recv == 0) break;
     }
     close(socketfd);
-}
-
-void startAcceptingConns(int server_socketfd) {
-    pthread_t id;
-    pthread_create(&id, NULL, handler, server_socketfd); 
 }
 
 void handler(int server_socketfd) {
