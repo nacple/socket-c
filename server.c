@@ -4,14 +4,14 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <pthread.h>
+#include <string.h>
 
 #define maxClients 10
 
 struct sockaddr_in * createAddr(char *ip, int port);
-void startReceiver_pt(int client_socketfd);
 void handler(int server_socketfd);
 void serverBroadcast(char *msg, int size);
-void clientBroadcast(char *msg, int size, int client_socketfd);
+void clientBroadcast(char *msg, int client_socketfd, char *name);
 
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
@@ -20,6 +20,7 @@ struct AcceptedConnection {
     struct sockaddr_in addr;
     int error;
     char status;
+    char name[20];
 };
 
 struct AcceptedConnection connectedClients[maxClients];
@@ -28,6 +29,7 @@ int connectedClientCount = 0;
 struct AcceptedConnection * acceptConnection(int server_socketfd);
 void startReceiver(struct AcceptedConnection * acceptedConn);
 void freeSocket(struct AcceptedConnection *socketfd);
+void startReceiver_pt(struct AcceptedConnection * acceptedConn);
 
 int main() {
     int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -77,23 +79,34 @@ struct AcceptedConnection * acceptConnection(int server_socketfd) {
     return acceptedConn;
 }
 
-void startReceiver_pt(int socketfd) {
-    char buffer[1024];
-    while(1) {
-        ssize_t result_recv = recv(socketfd, buffer, 1024, 0);
-        if (result_recv < 0) {
-            printf("Error: recv()\n");
-            break;
+void startReceiver_pt(struct AcceptedConnection * acceptedConn) {
+    int socketfd = acceptedConn->acceptedSocketfd;
+    char name[20];
+    ssize_t result_recv_name = recv(socketfd, name, 20, 0);
+    if (result_recv_name < 0) {
+            printf("Error: name recv()\n");
         }
-        if (result_recv > 0) {
-            buffer[result_recv] = 0;
-            printf("%s\n", buffer);
-            clientBroadcast(buffer, sizeof(buffer), socketfd);
+    if (result_recv_name > 0) {
+        strcpy(acceptedConn->name, name);
+
+        char buffer[1024];
+        while(1) {
+            ssize_t result_recv = recv(socketfd, buffer, 1024, 0);
+            if (result_recv < 0) {
+                printf("Error: msg recv()\n");
+                break;
+            }
+            if (result_recv > 0) {
+                buffer[result_recv] = 0;
+                clientBroadcast(buffer, socketfd, acceptedConn->name);
+            }
+            if (result_recv == 0) break;
         }
-        if (result_recv == 0) break;
     }
+    char *err = "Error: Invalid username.";
+    send(socketfd, err, sizeof(err), 0);
     close(socketfd);
-    freeSocket(socketfd);
+    freeSocket(acceptedConn);
 }
 
 void handler(int server_socketfd) {
@@ -112,7 +125,7 @@ void handler(int server_socketfd) {
 
 void startReceiver(struct AcceptedConnection * acceptedConn) {
     pthread_t id;
-    pthread_create(&id, NULL, (void *)startReceiver_pt, (void *)acceptedConn->acceptedSocketfd);
+    pthread_create(&id, NULL, (void *)startReceiver_pt, (void *)acceptedConn);
 }
 
 void serverBroadcast(char *msg, int size) {
@@ -123,22 +136,26 @@ void serverBroadcast(char *msg, int size) {
     pthread_mutex_unlock(&lock);
 }
 
-void clientBroadcast(char *msg, int size, int client_socketfd) {
+void clientBroadcast(char *msg, int client_socketfd, char *name) {
     pthread_mutex_lock(&lock);
+    char *buffer[1024];
+    sprintf(buffer, "%s: %s", name, msg);
+    int size = strlen(buffer);
     for(int i = 0; i < connectedClientCount; i++) {
         if(connectedClients[i].acceptedSocketfd == client_socketfd) continue;
-        send(connectedClients[i].acceptedSocketfd, msg, size, 0);
+        printf("%s\n", buffer);
+        send(connectedClients[i].acceptedSocketfd, buffer, size, 0);
     }
     pthread_mutex_unlock(&lock);
 }
 
-void freeSocket(struct AcceptedConnection *socketfd) {
+void freeSocket(struct AcceptedConnection *acceptedConn) {
     pthread_mutex_lock(&lock);
     for(int i = 0; i < connectedClientCount; i++) {
-        if(connectedClients[i].acceptedSocketfd == socketfd->acceptedSocketfd) {
+        if(connectedClients[i].acceptedSocketfd == acceptedConn->acceptedSocketfd) {
             connectedClientCount--;
             connectedClients[i] = connectedClients[connectedClientCount];
-            free(socketfd);
+            free(acceptedConn);
         }
     }
     pthread_mutex_unlock(&lock);
