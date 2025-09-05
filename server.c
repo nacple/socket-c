@@ -2,6 +2,7 @@
 #include <arpa/inet.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <unistd.h>
 
 struct sockaddr_in * createAddr(char *ip, int port);
 
