@@ -85,6 +85,7 @@ void startReceiver(int socketfd) {
         if (result_recv > 0) {
             buffer[result_recv] = 0;
             printf("%s\n", buffer);
+            clientBroadcast(buffer, sizeof(buffer), socketfd);
         }
         if (result_recv == 0) break;
     }
