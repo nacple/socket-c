@@ -13,6 +13,8 @@ void handler(int server_socketfd);
 void serverBroadcast(char *msg, int size);
 void clientBroadcast(char *msg, int size, int client_socketfd);
 
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+
 struct AcceptedConnection {
     int acceptedSocketfd;
     struct sockaddr_in addr;
@@ -25,6 +27,7 @@ int connectedClientCount = 0;
 
 struct AcceptedConnection * acceptConnection(int server_socketfd);
 void startReceiver(struct AcceptedConnection * acceptedConn);
+void freeSocket(struct AcceptedConnection *socketfd);
 
 int main() {
     int server_socketfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -90,15 +93,18 @@ void startReceiver_pt(int socketfd) {
         if (result_recv == 0) break;
     }
     close(socketfd);
+    freeSocket(socketfd);
 }
 
 void handler(int server_socketfd) {
     while(1) {
         struct AcceptedConnection *client_socket = acceptConnection(server_socketfd);
         if(client_socket->status){
+            pthread_mutex_lock(&lock);
             if (connectedClientCount < maxClients) {
                 connectedClients[connectedClientCount++] = *client_socket;
             }
+            pthread_mutex_unlock(&lock);
         }
         startReceiver(client_socket);
     }
@@ -110,14 +116,30 @@ void startReceiver(struct AcceptedConnection * acceptedConn) {
 }
 
 void serverBroadcast(char *msg, int size) {
+    pthread_mutex_lock(&lock);
     for(int i = 0; i < connectedClientCount; i++) {
         send(connectedClients[i].acceptedSocketfd, msg, size, 0);
     }
+    pthread_mutex_unlock(&lock);
 }
 
 void clientBroadcast(char *msg, int size, int client_socketfd) {
+    pthread_mutex_lock(&lock);
     for(int i = 0; i < connectedClientCount; i++) {
         if(connectedClients[i].acceptedSocketfd == client_socketfd) continue;
         send(connectedClients[i].acceptedSocketfd, msg, size, 0);
     }
+    pthread_mutex_unlock(&lock);
+}
+
+void freeSocket(struct AcceptedConnection *socketfd) {
+    pthread_mutex_lock(&lock);
+    for(int i = 0; i < connectedClientCount; i++) {
+        if(connectedClients[i].acceptedSocketfd == socketfd->acceptedSocketfd) {
+            connectedClientCount--;
+            connectedClients[i] = connectedClients[connectedClientCount];
+            free(socketfd);
+        }
+    }
+    pthread_mutex_unlock(&lock);
 }
